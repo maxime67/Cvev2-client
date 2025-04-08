@@ -20,6 +20,17 @@ export const findAllCveByProduct = async (vendor) => {
     }
 };
 
+export const findByBaseScoreLimit = async (score) => {
+    try {
+        return await makeApiRequest('/cve/basescore/' + score);
+    } catch (error) {
+        console.error('Error fetching CVEs by score:', error);
+        throw error;
+    }
+};
+
+
+
 export const findLastCreatedCve = async () => {
     try {
         return await makeApiRequest('/cve/last/5');

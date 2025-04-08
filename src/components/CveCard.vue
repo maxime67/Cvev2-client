@@ -1,5 +1,6 @@
 <template>
-  <div class="bg-white rounded-md shadow border border-gray-200 hover:shadow-md transition-shadow duration-300 overflow-hidden max-w-xs">
+  <div
+      class="bg-white rounded-md shadow border border-gray-200 hover:shadow-md transition-shadow duration-300 overflow-hidden max-w-xs">
     <!-- En-tête avec ID et sévérité -->
     <div class="bg-blue-600 p-2 flex items-center justify-between" v-if="hasCvssMetrics">
       <h3 class="text-sm font-bold text-white truncate">{{ safeId }}</h3>
@@ -19,10 +20,10 @@
       <div class="flex justify-between text-xs mb-2">
         <div>
           <span class="text-gray-500">Produit:</span>
-          <div v-for="(product, index) in safeProducts" :key="index">
+          <div v-for="(product, index) in products" :key="index">
             <span class="font-medium">{{ product.name || 'N/A' }}</span>
           </div>
-          <span v-if="!safeProducts.length" class="font-medium">N/A</span>
+          <span v-if="!products.length" class="font-medium">N/A</span>
         </div>
         <div v-if="hasCvssMetrics">
           <span class="font-medium">{{ baseScore }}</span>
@@ -39,7 +40,8 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from "vue";
+import {computed, onMounted} from "vue";
+import {findProductById} from "@/services/ProductService.js";
 
 const props = defineProps({
   cve: {
@@ -52,7 +54,7 @@ const props = defineProps({
 // Computed properties to safely access nested data
 const safeId = computed(() => props.cve?.id || 'ID indisponible');
 const safeSummary = computed(() => props.cve?.summary || 'Aucune description disponible');
-const safeProducts = computed(() => props.cve?.products || []);
+let products = computed(() => props.cve?.products || []);
 const safePublishedDate = computed(() => props.cve?.published || null);
 
 const hasCvssMetrics = computed(() => {
@@ -90,7 +92,17 @@ const formatDate = (dateString) => {
   }
 };
 
+const getProductList = async (productIdList) => {
+  let array = [];
+  if (productIdList.length > 0) {
+    productIdList.forEach((productId) => {
+      const product = findProductById(productId);
+      array.push(product)
+    })
+  }
+  return array;
+}
+
 onMounted(() => {
-  console.log('CVE data:', props.cve);
 });
 </script>
