@@ -6,12 +6,11 @@
     <div class="relative bg-gray-50 overflow-hidden px-4 py-3">
       <div class="whitespace-nowrap scroll-animation inline-block">
               <span
-                  v-for="(message, index) in messages"
-                  :key="index"
+                  v-for="cve in newsList"
+                  :key="cve._id"
                   class="inline-block px-4 text-gray-800"
               >
-                {{ message }}
-                <span class="mx-4 text-blue-500">•</span>
+                <little-cve-card :cve="cve"></little-cve-card>
               </span>
       </div>
     </div>
@@ -77,7 +76,7 @@
   100% { transform: translateX(-100%); }
 }
 .scroll-animation {
-  animation: scroll 30s linear infinite;
+  animation: scroll 19s linear infinite;
 }
 </style>
 
@@ -87,22 +86,19 @@ import { findAllLastCreated } from "@/services/VendorService.js";
 import { findLastCreatedCve, findByBaseScoreLimit } from "@/services/CveService.js";
 import VendorUnitCard from "@/components/VendorUnitCard.vue";
 import CveCard from "@/components/CveCard.vue";
+import LittleCveCard from "@/components/littleCveCard.vue";
 
 const lastCreatedVendorList = ref([]);
 const lastCreatedCveList = ref([]);
 const criticalCveList = ref([]);
-const messages = ref([
-  'Breaking News: Nouveau lancement de produit cette semaine',
-  'Flash Info: Les inscriptions pour la conférence annuelle sont ouvertes',
-  'Alerte: Maintenance prévue du site web ce weekend',
-  'Nouveau: Découvrez notre dernière fonctionnalité aujourd\'hui',
-  'Important: Mise à jour de sécurité disponible'
-]);
+const newsList = ref([]);
 const displayAll = async () => {
   try {
     lastCreatedVendorList.value = await findAllLastCreated();
-    lastCreatedCveList.value = await findLastCreatedCve();
+    lastCreatedCveList.value = await findLastCreatedCve(5);
+    newsList.value = await findLastCreatedCve(2);
     criticalCveList.value = await findByBaseScoreLimit(8);
+    console.log(await lastCreatedCveList)
   } catch (error) {
     console.error('Error fetching data:', error);
   }

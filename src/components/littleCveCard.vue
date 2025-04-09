@@ -12,10 +12,6 @@
 
     <!-- Corps de la carte -->
     <div class="p-3">
-      <!-- Description courte -->
-      <p class="text-gray-700 text-xs mb-2 line-clamp-2">
-        {{ safeSummary }}
-      </p>
 
       <!-- Informations essentielles -->
       <div class="flex justify-between text-xs mb-2">

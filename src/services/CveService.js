@@ -11,6 +11,15 @@ export const findAllCve = async () => {
     }
 };
 
+export const findById = async (id) => {
+    try {
+        return await makeApiRequest('/cve/' + id);
+    } catch (error) {
+        console.error('Error fetching CVEs:', error);
+        throw error;
+    }
+};
+
 export const findAllCveByProduct = async (vendor) => {
     try {
         return await makeApiRequest('/cve/product/' + vendor);
@@ -31,9 +40,9 @@ export const findByBaseScoreLimit = async (score) => {
 
 
 
-export const findLastCreatedCve = async () => {
+export const findLastCreatedCve = async (limit) => {
     try {
-        return await makeApiRequest('/cve/last/5');
+        return await makeApiRequest('/cve/last/' + limit);
     } catch (error) {
         console.error('Error fetching last CVEs:', error);
         throw error;
