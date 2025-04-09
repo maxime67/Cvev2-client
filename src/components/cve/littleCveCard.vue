@@ -1,36 +1,31 @@
 <template>
   <div
       @click="router.push({ path: `cve/${props.cve?._id}`})"
-      class="bg-white rounded-md shadow border border-gray-200 hover:shadow-md transition-shadow duration-300 overflow-hidden max-w-xs">
-    <!-- En-tête avec ID et sévérité -->
-    <div class="bg-blue-600 p-2 flex items-center justify-between" v-if="hasCvssMetrics">
-      <h3 class="text-sm font-bold text-white truncate">{{ safeId }}</h3>
-      <span class="px-2 py-0.5 text-xs rounded-full" :class="getSeverityClass(getSeverity(baseScore))">
-        {{ getSeverity(baseScore) }}
-      </span>
-    </div>
-
-    <!-- Corps de la carte -->
-    <div class="p-3">
-
-      <!-- Informations essentielles -->
-      <div class="flex justify-between text-xs mb-2">
-        <div>
-          <span class="text-gray-500">Produit:</span>
-          <div v-for="(product, index) in products" :key="index">
-            <span class="font-medium">{{ product.name || 'N/A' }}</span>
-          </div>
-          <span v-if="!products.length" class="font-medium">N/A</span>
+      class="bg-white rounded-lg shadow hover:shadow-lg transition-all duration-300 overflow-hidden max-w-xs flex cursor-pointer">
+    <div class="w-1.5" :class="getSeverityClass(getSeverity(baseScore))"></div>
+    <div class="flex-1 p-3">
+      <div class="flex justify-between items-center mb-2">
+        <div class="flex items-center">
+          <span class="inline-block w-2 h-2 rounded-full mr-2" :class="getSeverityClass(getSeverity(baseScore))"></span>
+          <h3 class="text-sm font-bold text-gray-800 truncate">{{ safeId }}</h3>
         </div>
-        <div v-if="hasCvssMetrics">
-          <span class="font-medium">{{ baseScore }}</span>
-          <span :class="getSeverityClass(getSeverity(baseScore))" class="ml-1 inline-block w-2 h-2 rounded-full"></span>
+        <div class="bg-gray-100 text-xs px-1.5 py-0.5 rounded">
+          {{ formatDate(safePublishedDate) }}
         </div>
       </div>
 
-      <!-- Date de publication -->
-      <div class="text-xs text-gray-500 pt-1 border-t border-gray-100">
-        {{ formatDate(safePublishedDate) }}
+      <div class="flex justify-between items-center text-xs">
+        <div class="flex items-center">
+          <span class="mr-1">{{ products.length || 0 }}</span>
+          <span class="text-gray-500">produits</span>
+        </div>
+        <div class="flex items-center space-x-1">
+          <span class="text-gray-500">Score:</span>
+          <div class="flex space-x-0.5">
+            <div v-for="i in 5" :key="i" class="w-1.5 h-3 rounded-sm" :class="baseScore >= i*2 ? getSeverityClass(getSeverity(baseScore)) : 'bg-gray-200'"></div>
+          </div>
+          <span class="font-bold ml-1">{{ baseScore }}</span>
+        </div>
       </div>
     </div>
   </div>
@@ -52,12 +47,9 @@ const props = defineProps({
 // Computed properties to safely access nested data
 const safeId = computed(() => props.cve?.id || 'ID indisponible');
 const safeSummary = computed(() => props.cve?.summary || 'Aucune description disponible');
-let products = computed(() => props.cve?.products || []);
+let products = computed(() => props.cve?.products.slice(0, 5) || []);
 const safePublishedDate = computed(() => props.cve?.published || null);
 
-const hasCvssMetrics = computed(() => {
-  return (props.cve?.metrics?.cvssMetric?.length > 0);
-});
 
 const baseScore = computed(() => {
   return props.cve?.metrics?.cvssMetric?.[0]?.baseScore ?? 0;
@@ -90,16 +82,6 @@ const formatDate = (dateString) => {
   }
 };
 
-const getProductList = async (productIdList) => {
-  let array = [];
-  if (productIdList.length > 0) {
-    productIdList.forEach((productId) => {
-      const product = findProductById(productId);
-      array.push(product)
-    })
-  }
-  return array;
-}
 
 onMounted(() => {
 });

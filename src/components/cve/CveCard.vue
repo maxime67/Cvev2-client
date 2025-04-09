@@ -52,22 +52,11 @@ const safeSummary = computed(() => props.cve?.summary || 'Aucune description dis
 let products = computed(() => props.cve?.products.slice(0, 5) || []);
 const safePublishedDate = computed(() => props.cve?.published || null);
 
-const hasCvssMetrics = computed(() => {
-  return (props.cve?.metrics?.cvssMetric?.length > 0);
-});
 
 const baseScore = computed(() => {
   return props.cve?.metrics?.cvssMetric?.[0]?.baseScore ?? 0;
 });
-const getSeverityHeaderClass = (severity) => {
-  const classes = {
-    'LOW': 'bg-green-600',
-    'MEDIUM': 'bg-yellow-600',
-    'HIGH': 'bg-orange-600',
-    'CRITICAL': 'bg-red-600'
-  };
-  return classes[severity] || 'bg-gray-600';
-};
+
 const getSeverity = (baseScore) => {
   if (baseScore < 4) return "LOW";
   if (baseScore < 7) return "MEDIUM";
@@ -95,16 +84,6 @@ const formatDate = (dateString) => {
   }
 };
 
-const getProductList = async (productIdList) => {
-  let array = [];
-  if (productIdList.length > 0) {
-    productIdList.forEach((productId) => {
-      const product = findProductById(productId);
-      array.push(product)
-    })
-  }
-  return array;
-}
 
 onMounted(() => {
 });

@@ -30,10 +30,6 @@
                            :class="[$route.path === '/' ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white']">
                 Home Page
               </router-link>
-              <router-link to="/vendor" class="rounded-md px-3 py-2 text-sm font-medium"
-                           :class="[$route.path === '/vendor' ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white']">
-                Vendeurs
-              </router-link>
               <!-- Remove the extra div and use v-if directly on the router-link -->
               <router-link v-if="isAuthenticated" to="/dashboard" class="rounded-md px-3 py-2 text-sm font-medium"
                            :class="[$route.path === '/dashboard' ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white']">
@@ -46,16 +42,28 @@
         <!-- Autocomplete search -->
         <div class="search-container relative mr-4">
           <div class="input-container relative">
-            <input
-                type="text"
-                v-model="searchQuery"
-                @input="onSearchInput"
-                @keydown.down.prevent="onArrowDown"
-                @keydown.up.prevent="onArrowUp"
-                @keydown.enter="selectProduct"
-                placeholder="Rechercher un vendeur..."
-                class="w-64 py-1 px-3 pr-8 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800 text-sm"
-            />
+            <div class="flex items-center">
+              <!-- Search type selector -->
+              <select
+                  v-model="searchType"
+                  class="py-1 px-2 mr-1 bg-gray-700 text-white rounded-l-md focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800 text-sm"
+              >
+                <option value="vendor">Vendeur</option>
+                <option value="product">Produit</option>
+                <option value="cve">CVE</option>
+              </select>
+
+              <input
+                  type="text"
+                  v-model="searchQuery"
+                  @input="onSearchInput"
+                  @keydown.down.prevent="onArrowDown"
+                  @keydown.up.prevent="onArrowUp"
+                  @keydown.enter="selectSearchItem"
+                  :placeholder="getPlaceholder()"
+                  class="w-64 py-1 px-3 pr-8 bg-gray-700 text-white rounded-r-md focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800 text-sm"
+              />
+            </div>
             <div v-if="isLoading" class="absolute right-2 top-1/2 transform -translate-y-1/2">
               <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
                    viewBox="0 0 24 24">
@@ -67,16 +75,24 @@
           </div>
 
           <div v-show="showResults && searchQuery.length >= 3"
-               class="results-container absolute w-64 max-h-60 overflow-y-auto mt-1 bg-gray-700 text-white rounded-md shadow-lg z-50">
+               class="results-container absolute w-full max-h-60 overflow-y-auto mt-1 bg-gray-700 text-white rounded-md shadow-lg z-50">
             <ul v-if="searchResults.length > 0" class="py-1">
               <li
                   v-for="(result, index) in searchResults"
                   :key="index"
                   :class="{ 'bg-gray-600': index === selectedIndex }"
-                  @click="selectProductByClick(index)"
+                  @click="selectSearchItemByClick(index)"
                   class="px-3 py-2 cursor-pointer hover:bg-gray-600 text-sm"
               >
-                {{ result.name }} [{{ result.productsCount }} produits]
+                <template v-if="searchType === 'vendor'">
+                  {{ result.name }} [{{ result.productsCount }} produits]
+                </template>
+                <template v-else-if="searchType === 'product'">
+                  {{ result.name }} [{{ result.vendor }}]
+                </template>
+                <template v-else>
+                  {{ result.id }} - {{ result.description }}
+                </template>
               </li>
             </ul>
             <div v-else class="px-3 py-2 text-gray-400 text-sm">
@@ -99,7 +115,7 @@
             </svg>
           </button>
 
-          <!-- Authentication buttons or profile menu -->
+          <!-- Profile dropdown -->
           <div class="ml-3 relative">
             <div v-if="isAuthenticated">
               <!-- Profile dropdown button -->
@@ -112,6 +128,15 @@
                   {{ userInitials }}
                 </div>
               </button>
+
+              <!-- Profile dropdown menu -->
+              <div v-show="profileMenuOpen"
+                   class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                   role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button">
+                <button @click="handleLogout" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
+                  Déconnexion
+                </button>
+              </div>
             </div>
             <div v-else class="flex items-center space-x-2">
               <router-link to="/login"
@@ -135,9 +160,9 @@
                      :class="[$route.path === '/' ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white']">
           Home Page
         </router-link>
-        <router-link to="/vendor" class="block rounded-md px-3 py-2 text-base font-medium"
-                     :class="[$route.path === '/vendor' ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white']">
-          Vendeurs
+        <router-link v-if="isAuthenticated" to="/dashboard" class="block rounded-md px-3 py-2 text-base font-medium"
+                     :class="[$route.path === '/dashboard' ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white']">
+          Dashboard
         </router-link>
 
         <!-- Authentication options for mobile -->
@@ -163,16 +188,27 @@
 
         <!-- Mobile search -->
         <div class="search-container relative mt-3">
-          <input
-              type="text"
-              v-model="searchQuery"
-              @input="onSearchInput"
-              @keydown.down.prevent="onArrowDown"
-              @keydown.up.prevent="onArrowUp"
-              @keydown.enter="selectProduct"
-              placeholder="Rechercher un vendeur..."
-              class="w-full py-2 px-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-white text-base"
-          />
+          <div class="flex mb-2">
+            <select
+                v-model="searchType"
+                class="py-2 px-3 bg-gray-700 text-white rounded-l-md focus:outline-none focus:ring-2 focus:ring-white text-base"
+            >
+              <option value="vendor">Vendeur</option>
+              <option value="product">Produit</option>
+              <option value="cve">CVE</option>
+            </select>
+
+            <input
+                type="text"
+                v-model="searchQuery"
+                @input="onSearchInput"
+                @keydown.down.prevent="onArrowDown"
+                @keydown.up.prevent="onArrowUp"
+                @keydown.enter="selectSearchItem"
+                :placeholder="getPlaceholder()"
+                class="w-full py-2 px-3 bg-gray-700 text-white rounded-r-md focus:outline-none focus:ring-2 focus:ring-white text-base"
+            />
+          </div>
 
           <div v-show="showResults && searchQuery.length >= 3"
                class="results-container absolute w-full max-h-60 overflow-y-auto mt-1 bg-gray-700 text-white rounded-md shadow-lg z-50">
@@ -181,10 +217,18 @@
                   v-for="(result, index) in searchResults"
                   :key="index"
                   :class="{ 'bg-gray-600': index === selectedIndex }"
-                  @click="selectProductByClick(index)"
+                  @click="selectSearchItemByClick(index)"
                   class="px-3 py-2 cursor-pointer hover:bg-gray-600 text-base"
               >
-                {{ result.name }}
+                <template v-if="searchType === 'vendor'">
+                  {{ result.name }} [{{ result.productsCount }} produits]
+                </template>
+                <template v-else-if="searchType === 'product'">
+                  {{ result.name }} [{{ result.vendor }}]
+                </template>
+                <template v-else>
+                  {{ result.id }} - {{ result.description }}
+                </template>
               </li>
             </ul>
             <div v-else class="px-3 py-2 text-gray-400 text-base">
@@ -201,9 +245,12 @@
 import {ref, watch, onMounted, onUnmounted, computed} from 'vue';
 import {useRouter, useRoute} from 'vue-router';
 import {findAllVendorByName} from "@/services/VendorService.js";
+import {findAllProductsByName} from "@/services/ProductService.js";
+import {findCVEByIdentifier} from "@/services/CveService.js";
 import {AuthService} from '@/services/AuthService';
 
 const router = useRouter();
+const route = useRoute();
 
 // Search state
 const searchQuery = ref('');
@@ -211,6 +258,7 @@ const searchResults = ref([]);
 const showResults = ref(false);
 const isLoading = ref(false);
 const selectedIndex = ref(-1);
+const searchType = ref('vendor'); // Default search type
 let debounceTimeout = null;
 
 // Menu state
@@ -243,6 +291,21 @@ const handleLogout = () => {
   router.push('/login');
 };
 
+// Get placeholder based on search type
+const getPlaceholder = () => {
+  switch(searchType.value) {
+    case 'vendor':
+      return 'Rechercher un vendeur...';
+    case 'product':
+      return 'Rechercher un produit...';
+    case 'cve':
+      return 'Rechercher une CVE (ex: CVE-2023-1234)...';
+    default:
+      return 'Rechercher...';
+  }
+};
+
+// Handle search input with debounce
 const onSearchInput = () => {
   // Nettoyer le timeout précédent
   if (debounceTimeout) {
@@ -256,21 +319,44 @@ const onSearchInput = () => {
     return;
   }
 
+  // Automatic switch to CVE search if query starts with CVE-
+  if (searchQuery.value.toUpperCase().startsWith('CVE-')) {
+    searchType.value = 'cve';
+  }
+
   // Débounce pour éviter trop d'appels API
   debounceTimeout = setTimeout(() => {
-    fetchVendors();
+    fetchSearchResults();
   }, 300);
 };
 
-const fetchVendors = async () => {
+// Fetch search results based on the selected search type
+const fetchSearchResults = async () => {
   if (searchQuery.value.length >= 3) {
     isLoading.value = true;
     showResults.value = true;
 
     try {
-      // Appel à votre API en utilisant la fonction existante
-      const data = await findAllVendorByName(searchQuery.value);
-      searchResults.value = data || [];
+      switch(searchType.value) {
+        case 'vendor':
+          // Existing vendor search
+          const vendorData = await findAllVendorByName(searchQuery.value);
+          searchResults.value = vendorData || [];
+          break;
+
+        case 'product':
+          // New product search
+          const productData = await findAllProductsByName(searchQuery.value);
+          searchResults.value = productData || [];
+          break;
+
+        case 'cve':
+          // New CVE search
+          const cveData = await findCVEByIdentifier(searchQuery.value);
+          searchResults.value = cveData || [];
+          break;
+      }
+
       selectedIndex.value = -1;
     } catch (error) {
       console.error('Erreur:', error);
@@ -281,6 +367,7 @@ const fetchVendors = async () => {
   }
 };
 
+// Navigation with arrow keys
 const onArrowDown = () => {
   if (searchResults.value.length > 0) {
     if (selectedIndex.value < searchResults.value.length - 1) {
@@ -301,17 +388,56 @@ const onArrowUp = () => {
   }
 };
 
-const selectProduct = () => {
+// Select search item based on current selection
+const selectSearchItem = () => {
   if (selectedIndex.value >= 0 && searchResults.value.length > 0) {
-    searchQuery.value = searchResults.value[selectedIndex.value].name;
+    const selectedResult = searchResults.value[selectedIndex.value];
+
+    // Update search query display
+    if (searchType.value === 'vendor' || searchType.value === 'product') {
+      searchQuery.value = selectedResult.name;
+    } else {
+      searchQuery.value = selectedResult.id;
+    }
+
+    // Navigate based on search type
+    navigateToResult(selectedResult);
+
     showResults.value = false;
   }
 };
 
-const selectProductByClick = (index) => {
+// Select search item by clicking
+const selectSearchItemByClick = (index) => {
   selectedIndex.value = index;
-  searchQuery.value = searchResults.value[index].name;
+  const selectedResult = searchResults.value[index];
+
+  // Update search query display
+  if (searchType.value === 'vendor' || searchType.value === 'product') {
+    searchQuery.value = selectedResult.name;
+  } else {
+    searchQuery.value = selectedResult.id;
+  }
+
+  // Navigate based on search type
+  navigateToResult(selectedResult);
+
   showResults.value = false;
+};
+
+// Navigation logic based on selected result
+const navigateToResult = (result) => {
+  switch(searchType.value) {
+    case 'vendor':
+      router.push(`/vendor/${result._id}`);
+      break;
+    case 'product':
+      router.push(`/products/${result._id}`);
+      break;
+    case 'cve':
+      router.push(`/cve/${result._id}`);
+      break;
+  }
 };
 
 // Click outside handlers
@@ -326,6 +452,20 @@ const closeDropdowns = (event) => {
     showResults.value = false;
   }
 };
+
+// Reset search when changing routes
+watch(() => route.path, () => {
+  searchQuery.value = '';
+  searchResults.value = [];
+  showResults.value = false;
+});
+
+// Reset results when changing search type
+watch(searchType, () => {
+  searchQuery.value = '';
+  searchResults.value = [];
+  showResults.value = false;
+});
 
 // Initialize auth on component mount
 onMounted(() => {

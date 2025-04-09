@@ -19,7 +19,14 @@ export const findById = async (id) => {
         throw error;
     }
 };
-
+export const findCVEByIdentifier = async (identifier) => {
+    try {
+        return await makeApiGetRequest('api/cve/completion/' + identifier);
+    } catch (error) {
+        console.error('Error fetching CVEs:', error);
+        throw error;
+    }
+}
 export const findAllCveByProduct = async (vendor) => {
     try {
         return await makeApiGetRequest('api/cve/product/' + vendor);

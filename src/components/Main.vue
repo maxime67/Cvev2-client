@@ -31,7 +31,7 @@
       <!-- Colonne des Vendeurs -->
       <div class="bg-white rounded-lg shadow-lg overflow-hidden">
         <div class="bg-blue-600 px-6 py-4">
-          <h2 class="text-2xl font-semibold text-white">Nouveaux Fournisseurs</h2>
+          <h2 class="text-2xl font-semibold text-white">Statistiques</h2>
         </div>
         <div class="p-6 space-y-6">
           <div class="grid gap-4">
@@ -71,7 +71,7 @@
 }
 
 .scroll-animation {
-  animation: scroll 19s linear infinite;
+  animation: scroll 60s linear infinite;
 }
 </style>
 
@@ -88,47 +88,6 @@ const lastCreatedVendorList = ref([]);
 const lastCreatedCveList = ref([]);
 const criticalCveList = ref([]);
 const newsList = ref([]);
-
-const data = {
-  labels: [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December'
-  ],
-  datasets: [
-    {
-      label: 'Data One',
-      backgroundColor: '#f87979',
-      data: [40, 20, 12, 39, 10, 40, 39, 80, 40, 20, 12, 11]
-    }
-  ]
-}
-
-const options = {
-  animationEnabled: true,
-  title: {
-    text: "Vue.js Basic Column Chart"
-  },
-  data: [{
-    type: "column",
-    dataPoints: [
-      {label: "apple", y: 10},
-      {label: "orange", y: 15},
-      {label: "banana", y: 25},
-      {label: "mango", y: 30},
-      {label: "grape", y: 28}
-    ]
-  }]
-}
 
 
 const displayAll = async () => {

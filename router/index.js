@@ -5,6 +5,7 @@ import CveComponent from "@/components/cve/CveComponent.vue";
 import LoginForm from "@/components/auth/LoginForm.vue";
 import RegisterForm from "@/components/auth/RegisterForm.vue";
 import { AuthService } from "@/services/AuthService";
+import ProductComponent from "@/components/product/ProductComponent.vue";
 
 const routes = [
     {
@@ -13,15 +14,19 @@ const routes = [
         component: Main,
     },
     {
-        path: "/vendor",
-        name: "vendor",
-        component: VendorComponent,
-        meta: { requiresAuth: true } // Cette route nécessite une authentification
-    },
-    {
         path: "/cve/:id",
         name: "cve",
         component: CveComponent,
+    },
+    {
+        path: "/product/:id",
+        name: "product",
+        component: ProductComponent,
+    },
+    {
+        path: "/vendor/:id",
+        name: "vendor",
+        component: VendorComponent,
     },
     {
         path: "/login",
