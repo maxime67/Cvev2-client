@@ -1,8 +1,5 @@
 <template>
-  <div class="bg-white shadow-lg rounded-lg overflow-hidden">
-    <div class="bg-blue-600 text-white px-4 py-2 font-bold">
-      Informations importantes
-    </div>
+  <div class="bg-white rounded-lg overflow-hidden">
     <div class="relative bg-gray-50 overflow-hidden px-4 py-3">
       <div class="whitespace-nowrap scroll-animation inline-block">
               <span
@@ -17,10 +14,7 @@
   </div>
   <div class="container mx-auto px-4 py-12">
     <!-- Nouvelle div horizontale pour les CVE les plus critiques -->
-    <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
-      <div class="bg-yellow-600 px-6 py-4">
-        <h2 class="text-2xl font-semibold text-white">CVE Critiques</h2>
-      </div>
+    <div class="bg-white rounded-lg overflow-hidden mb-8">
       <div class="p-6">
         <div v-if="criticalCveList.length === 0" class="text-center py-4 text-gray-500">
           Chargement des données...
@@ -40,13 +34,9 @@
           <h2 class="text-2xl font-semibold text-white">Nouveaux Fournisseurs</h2>
         </div>
         <div class="p-6 space-y-6">
-          <div v-if="lastCreatedVendorList.length === 0" class="text-center py-8 text-gray-500">
-            Chargement des données...
-          </div>
-          <div v-else class="grid gap-4">
-            <div v-for="vendor in lastCreatedVendorList" :key="vendor.id" class="transition-all duration-300 ">
-              <VendorUnitCard :vendor="vendor" class="h-full"></VendorUnitCard>
-            </div>
+          <div class="grid gap-4">
+            <chart></chart>
+            <chart2></chart2>
           </div>
         </div>
       </div>
@@ -72,31 +62,80 @@
 </template>
 <style scoped>
 @keyframes scroll {
-  0% { transform: translateX(100%); }
-  100% { transform: translateX(-100%); }
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
 }
+
 .scroll-animation {
   animation: scroll 19s linear infinite;
 }
 </style>
 
 <script setup>
-import { onMounted, ref } from "vue";
-import { findAllLastCreated } from "@/services/VendorService.js";
-import { findLastCreatedCve, findByBaseScoreLimit } from "@/services/CveService.js";
-import VendorUnitCard from "@/components/VendorUnitCard.vue";
-import CveCard from "@/components/CveCard.vue";
-import LittleCveCard from "@/components/littleCveCard.vue";
+import {onMounted, ref} from "vue";
+import {findAllLastCreated} from "@/services/VendorService.js";
+import {findLastCreatedCve, findByBaseScoreLimit} from "@/services/CveService.js";
+import CveCard from "@/components/cve/CveCard.vue";
+import LittleCveCard from "@/components/cve/littleCveCard.vue";
+import Chart from "@/components/chart/chart.vue";
+import Chart2 from "@/components/chart/chart2.vue";
 
 const lastCreatedVendorList = ref([]);
 const lastCreatedCveList = ref([]);
 const criticalCveList = ref([]);
 const newsList = ref([]);
+
+const data = {
+  labels: [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December'
+  ],
+  datasets: [
+    {
+      label: 'Data One',
+      backgroundColor: '#f87979',
+      data: [40, 20, 12, 39, 10, 40, 39, 80, 40, 20, 12, 11]
+    }
+  ]
+}
+
+const options = {
+  animationEnabled: true,
+  title: {
+    text: "Vue.js Basic Column Chart"
+  },
+  data: [{
+    type: "column",
+    dataPoints: [
+      {label: "apple", y: 10},
+      {label: "orange", y: 15},
+      {label: "banana", y: 25},
+      {label: "mango", y: 30},
+      {label: "grape", y: 28}
+    ]
+  }]
+}
+
+
 const displayAll = async () => {
   try {
     lastCreatedVendorList.value = await findAllLastCreated();
     lastCreatedCveList.value = await findLastCreatedCve(5);
-    newsList.value = await findLastCreatedCve(2);
+    newsList.value = await findLastCreatedCve(10);
     criticalCveList.value = await findByBaseScoreLimit(8);
     console.log(await criticalCveList)
   } catch (error) {

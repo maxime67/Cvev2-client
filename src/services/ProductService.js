@@ -1,8 +1,8 @@
-import { makeApiRequest } from "./ApiService";
+import { makeApiGetRequest } from "./ApiService";
 
 export const findProductByName = async (product) => {
     try {
-        return await makeApiRequest('/product/name/' + product); // Correction de l'URL (ajout du /)
+        return await makeApiGetRequest('api/product/name/' + product); // Correction de l'URL (ajout du /)
     } catch(error){
         console.error('Error fetching product by name:', error);
         throw error;
@@ -11,7 +11,7 @@ export const findProductByName = async (product) => {
 
 export const findProductById = async (productId) => {
     try {
-        return await makeApiRequest('/product/' + productId); // Correction de l'URL (ajout du /)
+        return await makeApiGetRequest('api/product/' + productId); // Correction de l'URL (ajout du /)
     } catch(error){
         console.error('Error fetching product by name:', error);
         throw error;
@@ -21,7 +21,7 @@ export const findProductById = async (productId) => {
 
 export const findAllProductByVendor = async (vendor) => {
     try {
-        return await makeApiRequest('/product/vendor/' + vendor); // Correction de l'URL
+        return await makeApiGetRequest('api/product/vendor/' + vendor); // Correction de l'URL
     } catch(error){
         console.error('Error fetching products by vendor:', error);
         throw error;

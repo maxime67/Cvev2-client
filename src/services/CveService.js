@@ -1,10 +1,10 @@
 // Utilisation d'un export direct sans balise script
 
-import {makeApiRequest} from "./ApiService";
+import {makeApiGetRequest} from "./ApiService";
 
 export const findAllCve = async () => {
     try {
-        return await makeApiRequest('/cve');
+        return await makeApiGetRequest('api/cve');
     } catch (error) {
         console.error('Error fetching CVEs:', error);
         throw error;
@@ -13,7 +13,7 @@ export const findAllCve = async () => {
 
 export const findById = async (id) => {
     try {
-        return await makeApiRequest('/cve/' + id);
+        return await makeApiGetRequest('api/cve/' + id);
     } catch (error) {
         console.error('Error fetching CVEs:', error);
         throw error;
@@ -22,7 +22,7 @@ export const findById = async (id) => {
 
 export const findAllCveByProduct = async (vendor) => {
     try {
-        return await makeApiRequest('/cve/product/' + vendor);
+        return await makeApiGetRequest('api/cve/product/' + vendor);
     } catch (error) {
         console.error('Error fetching CVEs by product:', error);
         throw error;
@@ -31,7 +31,7 @@ export const findAllCveByProduct = async (vendor) => {
 
 export const findByBaseScoreLimit = async (score) => {
     try {
-        return await makeApiRequest('/cve/basescore/' + score);
+        return await makeApiGetRequest('api/cve/basescore/' + score);
     } catch (error) {
         console.error('Error fetching CVEs by score:', error);
         throw error;
@@ -42,7 +42,7 @@ export const findByBaseScoreLimit = async (score) => {
 
 export const findLastCreatedCve = async (limit) => {
     try {
-        return await makeApiRequest('/cve/last/' + limit);
+        return await makeApiGetRequest('api/cve/last/' + limit);
     } catch (error) {
         console.error('Error fetching last CVEs:', error);
         throw error;

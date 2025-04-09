@@ -36,7 +36,7 @@
 <script setup>
 import {computed, onMounted} from "vue";
 import {findProductById} from "@/services/ProductService.js";
-import router from "../../router/index.js";
+import router from "../../../router/index.js";
 
 const props = defineProps({
   cve: {
