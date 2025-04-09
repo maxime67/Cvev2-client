@@ -56,11 +56,11 @@ let products = computed(() => props.cve?.products || []);
 const safePublishedDate = computed(() => props.cve?.published || null);
 
 const hasCvssMetrics = computed(() => {
-  return (props.cve?.metrics?.cvssMetricV2?.length > 0);
+  return (props.cve?.metrics?.cvssMetric?.length > 0);
 });
 
 const baseScore = computed(() => {
-  return props.cve?.metrics?.cvssMetricV2?.[0]?.baseScore ?? 0;
+  return props.cve?.metrics?.cvssMetric?.[0]?.baseScore ?? 0;
 });
 
 const getSeverity = (baseScore) => {

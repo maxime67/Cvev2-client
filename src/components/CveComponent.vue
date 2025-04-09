@@ -1,7 +1,7 @@
 <template>
   <div v-if="!loading" class="bg-white rounded-md shadow border border-gray-200 overflow-hidden">
     <!-- En-tête avec ID et sévérité -->
-    <div class="bg-blue-600 p-3 flex items-center justify-between">
+    <div class="p-3 flex items-center justify-between" :class="getSeverityHeaderClass(getSeverity(baseScore))">
       <h3 class="text-lg font-bold text-white truncate">{{ safeId }}</h3>
       <span v-if="hasCvssMetrics" class="px-2 py-1 text-xs font-medium rounded-full"
             :class="getSeverityClass(getSeverity(baseScore))">
@@ -33,9 +33,21 @@
         </div>
       </div>
 
+      <!-- Visualisation du score avec les barres -->
+      <div class="mb-4">
+        <h4 class="text-sm font-semibold text-gray-700 mb-1">Score visuel</h4>
+        <div class="flex items-center space-x-1">
+          <div class="flex space-x-0.5">
+            <div v-for="i in 5" :key="i" class="w-6 h-3 rounded-sm"
+                 :class="baseScore >= i*2 ? getSeverityClass(getSeverity(baseScore)) : 'bg-gray-200'"></div>
+          </div>
+          <span class="font-bold ml-1">{{ baseScore }}/10</span>
+        </div>
+      </div>
+
       <!-- Produits affectés -->
       <div class="mb-4">
-        <h4 class="text-sm font-semibold text-gray-700 mb-1">Produits affectés</h4>
+        <h4 class="text-sm font-semibold text-gray-700 mb-1">Produits affectés ({{ products.length || 0 }})</h4>
         <div v-if="products.length">
           <div v-for="(product, index) in products" :key="index" class="text-sm">
             <span class="font-medium">{{ product.name || 'N/A' }}</span>
@@ -95,11 +107,6 @@ const fetchCveData = async () => {
     const data = await findById(route.params.id);
     cveData.value = data;
 
-    // For development/testing, you can use the sample data:
-    // cveData.value = {
-    //   ...JSON sample data here
-    // };
-
     // Fetch related products if available
     if (data && data.products && data.products.length > 0) {
       products.value = await getProductList(data.products);
@@ -119,19 +126,19 @@ const safeLastModified = computed(() => cveData.value?.lastModified || null);
 
 // CVSS Metrics
 const hasCvssMetrics = computed(() => {
-  return (cveData.value?.metrics?.cvssMetricV2?.length > 0 ||
-      cveData.value?.metrics?.cvssMetricV3?.length > 0 ||
-      cveData.value?.metrics?.cvssMetricV31?.length > 0);
+  return (cveData.value?.metrics?.cvssMetric?.length > 0 ||
+      cveData.value?.metrics?.cvssMetric?.length > 0 ||
+      cveData.value?.metrics?.cvssMetric?.length > 0);
 });
 
 // Get the active CVSS metric (prioritize V31, then V3, then V2)
 const activeCvssMetric = computed(() => {
-  if (cveData.value?.metrics?.cvssMetricV31?.length > 0) {
-    return cveData.value.metrics.cvssMetricV31[0];
-  } else if (cveData.value?.metrics?.cvssMetricV3?.length > 0) {
-    return cveData.value.metrics.cvssMetricV3[0];
-  } else if (cveData.value?.metrics?.cvssMetricV2?.length > 0) {
-    return cveData.value.metrics.cvssMetricV2[0];
+  if (cveData.value?.metrics?.cvssMetric?.length > 0) {
+    return cveData.value.metrics.cvssMetric[0];
+  } else if (cveData.value?.metrics?.cvssMetric?.length > 0) {
+    return cveData.value.metrics.cvssMetric[0];
+  } else if (cveData.value?.metrics?.cvssMetric?.length > 0) {
+    return cveData.value.metrics.cvssMetric[0];
   }
   return null;
 });
@@ -181,6 +188,16 @@ const getSeverityClass = (severity) => {
     'CRITICAL': 'bg-red-500 text-white'
   };
   return classes[severity] || 'bg-gray-500 text-white';
+};
+
+const getSeverityHeaderClass = (severity) => {
+  const classes = {
+    'LOW': 'bg-green-600',
+    'MEDIUM': 'bg-yellow-600',
+    'HIGH': 'bg-orange-600',
+    'CRITICAL': 'bg-red-600'
+  };
+  return classes[severity] || 'bg-blue-600';
 };
 
 const formatDate = (dateString) => {
