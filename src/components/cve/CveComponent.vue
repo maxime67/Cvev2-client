@@ -181,7 +181,7 @@ const fetchCveData = async () => {
 
     // Fetch related products if available
     if (data && data.products && data.products.length > 0) {
-      products.value = await getProductList(data.products);
+      products.value = data.products;
     }
 
     // Fetch user interaction status if authenticated
