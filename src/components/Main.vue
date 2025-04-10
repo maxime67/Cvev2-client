@@ -84,7 +84,6 @@ import LittleCveCard from "@/components/cve/littleCveCard.vue";
 import Chart from "@/components/chart/chart.vue";
 import Chart2 from "@/components/chart/chart2.vue";
 
-const lastCreatedVendorList = ref([]);
 const lastCreatedCveList = ref([]);
 const criticalCveList = ref([]);
 const newsList = ref([]);
@@ -92,7 +91,6 @@ const newsList = ref([]);
 
 const displayAll = async () => {
   try {
-    lastCreatedVendorList.value = await findAllLastCreated();
     lastCreatedCveList.value = await findLastCreatedCve(5);
     newsList.value = await findLastCreatedCve(10);
     criticalCveList.value = await findByBaseScoreLimit(8);

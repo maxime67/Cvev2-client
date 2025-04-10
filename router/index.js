@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Main from "@/components/Main.vue";
-import VendorComponent from "@/components/VendorComponent.vue";
+import VendorComponent from "@/components/vendor/VendorComponent.vue";
 import CveComponent from "@/components/cve/CveComponent.vue";
 import LoginForm from "@/components/auth/LoginForm.vue";
 import RegisterForm from "@/components/auth/RegisterForm.vue";
@@ -13,6 +13,12 @@ const routes = [
         path: "/",
         name: "home",
         component: Main,
+    },
+    {
+        path: "/dashboard",
+        name: "dashboard",
+        component: DashBoardComponent,
+        meta: { requiresAuth: true }
     },
     {
         path: "/cve/:id",
@@ -40,12 +46,6 @@ const routes = [
         name: "register",
         component: RegisterForm,
         meta: { guestOnly: true } // Cette route est uniquement pour les visiteurs non authentifiés
-    },
-    {
-        path: "/dashboard",
-        name: "dashboard",
-        component: DashBoardComponent,
-        meta: { requiresAuth: true } // Cette route est uniquement pour les visiteurs non authentifiés
     }
 ];
 
