@@ -85,13 +85,13 @@
                   class="px-3 py-2 cursor-pointer hover:bg-gray-600 text-sm"
               >
                 <template v-if="searchType === 'vendor'">
-                  {{ result.name }} [{{ result.productsCount }} produits]
+                  {{ result.name }}
                 </template>
                 <template v-else-if="searchType === 'product'">
-                  {{ result.name }} [{{ result.vendor }}]
+                  {{ result.name }}
                 </template>
                 <template v-else>
-                  {{ result.id }} - {{ result.description }}
+                  {{ result.id }}
                 </template>
               </li>
             </ul>
@@ -221,13 +221,13 @@
                   class="px-3 py-2 cursor-pointer hover:bg-gray-600 text-base"
               >
                 <template v-if="searchType === 'vendor'">
-                  {{ result.name }} [{{ result.productsCount }} produits]
+                  {{ result.name }}
                 </template>
                 <template v-else-if="searchType === 'product'">
-                  {{ result.name }} [{{ result.vendor }}]
+                  {{ result.name }}
                 </template>
                 <template v-else>
-                  {{ result.id }} - {{ result.description }}
+                  {{ result.id }}
                 </template>
               </li>
             </ul>
@@ -342,6 +342,7 @@ const fetchSearchResults = async () => {
           // Existing vendor search
           const vendorData = await findAllVendorByName(searchQuery.value);
           searchResults.value = vendorData || [];
+          console.log(searchResults.value)
           break;
 
         case 'product':

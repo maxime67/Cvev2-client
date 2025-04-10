@@ -1,21 +1,5 @@
 <template>
-  <div v-if="vendor && productList.length > 0"
-       class="bg-white rounded-md shadow border border-gray-200 hover:shadow-md transition-shadow duration-300 overflow-hidden max-w-xs">
-    <div class="bg-blue-600 p-2 flex items-center justify-between">
-      <h3 class="text-sm font-bold text-white truncate">
-        {{ vendor.name }}
-      </h3>
-    </div>
-    <div v-for="product in productList">
-      <div v-if="product">
-        {{ product.name }}
-      </div>
-    </div>
-    <!-- Date de publication -->
-    <div class="text-xs text-gray-500 pt-1 border-t border-gray-100">
-      {{ formatDate(vendor.createdAt) }}
-    </div>
-  </div>
+ <h1> This is Vendor Page for {{ $route.params.id }}</h1>
 </template>
 
 <script setup>

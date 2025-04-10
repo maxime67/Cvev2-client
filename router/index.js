@@ -6,6 +6,7 @@ import LoginForm from "@/components/auth/LoginForm.vue";
 import RegisterForm from "@/components/auth/RegisterForm.vue";
 import { AuthService } from "@/services/AuthService";
 import ProductComponent from "@/components/product/ProductComponent.vue";
+import DashBoardComponent from "@/components/DashBoardComponent.vue";
 
 const routes = [
     {
@@ -39,6 +40,12 @@ const routes = [
         name: "register",
         component: RegisterForm,
         meta: { guestOnly: true } // Cette route est uniquement pour les visiteurs non authentifiés
+    },
+    {
+        path: "/dashboard",
+        name: "dashboard",
+        component: DashBoardComponent,
+        meta: { requiresAuth: true } // Cette route est uniquement pour les visiteurs non authentifiés
     }
 ];
 

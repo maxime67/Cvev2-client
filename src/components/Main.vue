@@ -96,7 +96,6 @@ const displayAll = async () => {
     lastCreatedCveList.value = await findLastCreatedCve(5);
     newsList.value = await findLastCreatedCve(10);
     criticalCveList.value = await findByBaseScoreLimit(8);
-    console.log(await criticalCveList)
   } catch (error) {
     console.error('Error fetching data:', error);
   }

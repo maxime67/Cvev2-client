@@ -52,7 +52,6 @@ export const AuthService = {
         localStorage.removeItem(TOKEN_KEY);
         currentUser.value = null;
         isAuthenticated.value = false;
-        // Rediriger vers la page de connexion ou le tableau de bord
     },
 
     async fetchCurrentUser() {
