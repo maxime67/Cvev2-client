@@ -57,7 +57,7 @@ export const AuthService = {
     async fetchCurrentUser() {
         try {
             if (this.getAuthToken()) {
-                const response = await axios.get(`${import.meta.env.VITE_APIURL}api/auth/profile`);
+                const response = await axios.get(`${import.meta.env.VITE_APIURL}/api/auth/profile`);
                 currentUser.value = response.data;
                 isAuthenticated.value = true;
                 return currentUser.value;

@@ -11,6 +11,64 @@
 
     <!-- Corps de la carte -->
     <div class="p-4">
+      <!-- Boutons d'action -->
+      <div class="mb-4 flex flex-wrap gap-2">
+        <button @click="toggleStatus('Follow')"
+                class="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200"
+                :class="statusMap.Follow ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+          {{ statusMap.Follow ? 'Following' : 'Follow' }}
+        </button>
+
+        <button @click="toggleStatus('Mitigated')"
+                class="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200"
+                :class="statusMap.Mitigated ? 'bg-orange-600 text-white hover:bg-orange-700' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016zM12 9v2m0 4h.01" />
+          </svg>
+          {{ statusMap.Mitigated ? 'Mitigated' : 'Mark as Mitigated' }}
+        </button>
+
+        <button @click="toggleStatus('Patch')"
+                class="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200"
+                :class="statusMap.Patch ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          {{ statusMap.Patch ? 'Patched' : 'Mark as Patched' }}
+        </button>
+      </div>
+
+      <!-- Message de statut -->
+      <div v-if="statusMessage" class="mb-4 p-2 rounded-md text-sm" :class="statusMessageClass">
+        {{ statusMessage }}
+      </div>
+
+      <!-- Notes -->
+      <div v-if="showNotesInput || currentNotes" class="mb-4">
+        <h4 class="text-sm font-semibold text-gray-700 mb-1">Notes</h4>
+        <textarea v-if="showNotesInput"
+                  v-model="notes"
+                  class="w-full p-2 border border-gray-300 rounded-md text-sm"
+                  rows="3"
+                  placeholder="Ajoutez vos notes concernant cette CVE..."></textarea>
+        <p v-else-if="currentNotes" class="text-gray-700 text-sm p-2 bg-gray-50 rounded-md">{{ currentNotes }}</p>
+
+        <div class="mt-2 flex justify-end space-x-2">
+          <button v-if="showNotesInput" @click="saveNotes" class="px-3 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700">
+            Enregistrer
+          </button>
+          <button v-if="showNotesInput" @click="cancelNotes" class="px-3 py-1 bg-gray-200 text-gray-700 text-xs rounded-md hover:bg-gray-300">
+            Annuler
+          </button>
+          <button v-if="!showNotesInput" @click="editNotes" class="px-3 py-1 bg-gray-200 text-gray-700 text-xs rounded-md hover:bg-gray-300">
+            {{ currentNotes ? 'Modifier' : 'Ajouter des notes' }}
+          </button>
+        </div>
+      </div>
+
       <!-- Description complète -->
       <div class="mb-4">
         <h4 class="text-sm font-semibold text-gray-700 mb-1">Description</h4>
@@ -92,6 +150,8 @@ import { computed, ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { findProductById } from "@/services/ProductService.js";
 import { findById } from "@/services/CveService.js";
+import { AuthService } from "@/services/AuthService.js";
+import { makeApiGetRequest, makeApiPostRequest, makeApiDeleteRequest } from "@/services/ApiService.js";
 
 // Get the route to access parameters
 const route = useRoute();
@@ -100,6 +160,18 @@ const route = useRoute();
 const cveData = ref(null);
 const products = ref([]);
 const loading = ref(true);
+const statusMap = ref({
+  Follow: false,
+  Mitigated: false,
+  Patch: false
+});
+const statusMessage = ref('');
+const statusMessageClass = ref('');
+
+// Notes handling
+const showNotesInput = ref(false);
+const notes = ref('');
+const currentNotes = ref('');
 
 // Fetch CVE data based on route parameter
 const fetchCveData = async () => {
@@ -111,11 +183,125 @@ const fetchCveData = async () => {
     if (data && data.products && data.products.length > 0) {
       products.value = await getProductList(data.products);
     }
+
+    // Fetch user interaction status if authenticated
+    if (AuthService.getters.isAuthenticated.value) {
+      await fetchUserInteraction();
+    }
   } catch (error) {
     console.error("Error fetching CVE data:", error);
   } finally {
     loading.value = false;
   }
+};
+
+// Fetch user interaction with this CVE
+const fetchUserInteraction = async () => {
+  try {
+    const cveId = route.params.id;
+    const response = await makeApiGetRequest(`/api/interaction/${cveId}`);
+    if (response && response.status) {
+      if (["Follow", "Mitigated", "Patch"].includes(response.status)) {
+        statusMap.value[response.status] = true;
+      } else {
+        console.error("Statut inconnu reçu de l'API:", response.status);
+      }
+      currentNotes.value = response.notes || '';
+    }
+  } catch (error) {
+    console.error("Error fetching user interaction:", error);
+  }
+};
+
+// Toggle status for a CVE
+const toggleStatus = async (status) => {
+  if (!AuthService.getters.isAuthenticated.value) {
+    statusMessage.value = "Veuillez vous connecter pour interagir avec cette CVE";
+    statusMessageClass.value = "bg-yellow-100 text-yellow-800";
+    return;
+  }
+
+  try {
+    const cveId = route.params.id;
+
+    // Si on clique sur un statut déjà actif, on le désactive
+    if (statusMap.value[status]) {
+      await makeApiDeleteRequest(`/api/interaction/delete/${cveId}`);
+
+      Object.keys(statusMap.value).forEach(key => {
+        statusMap.value[key] = false;
+      });
+      currentNotes.value = '';
+    } else {
+      // Sinon, on active ce statut et désactive les autres
+      const response = await makeApiPostRequest(`/api/interaction/save/${cveId}`, {
+        status,
+        notes: currentNotes.value
+      });
+
+      Object.keys(statusMap.value).forEach(key => {
+        statusMap.value[key] = key === status;
+      });
+
+    }
+
+    // Faire disparaître le message après 3 secondes
+    setTimeout(() => {
+      statusMessage.value = '';
+    }, 3000);
+  } catch (error) {
+    console.error("Error updating status:", error);
+    statusMessage.value = "Une erreur est survenue lors de la mise à jour du statut";
+    statusMessageClass.value = "bg-red-100 text-red-800";
+  }
+};
+
+// Notes handling functions
+const editNotes = () => {
+  notes.value = currentNotes.value;
+  showNotesInput.value = true;
+};
+
+const saveNotes = async () => {
+  try {
+    const cveId = route.params.id;
+    // Trouver le statut actif
+    const activeStatus = Object.keys(statusMap.value).find(key => statusMap.value[key]) || 'Follow';
+
+    // Si un statut est déjà actif, mettre à jour les notes
+    if (Object.values(statusMap.value).some(val => val)) {
+      await makeApiPostRequest(`/api/interactions/${cveId}`, {
+        status: activeStatus,
+        notes: notes.value
+      });
+    } else {
+      // Sinon, créer une nouvelle interaction avec Follow par défaut
+      await makeApiPostRequest(`/api/interactions/${cveId}`, {
+        status: 'Follow',
+        notes: notes.value
+      });
+      statusMap.value.Follow = true;
+    }
+
+    currentNotes.value = notes.value;
+    showNotesInput.value = false;
+
+    statusMessage.value = "Notes enregistrées avec succès";
+    statusMessageClass.value = "bg-green-100 text-green-800";
+
+    // Faire disparaître le message après 3 secondes
+    setTimeout(() => {
+      statusMessage.value = '';
+    }, 3000);
+  } catch (error) {
+    console.error("Error saving notes:", error);
+    statusMessage.value = "Une erreur est survenue lors de l'enregistrement des notes";
+    statusMessageClass.value = "bg-red-100 text-red-800";
+  }
+};
+
+const cancelNotes = () => {
+  showNotesInput.value = false;
 };
 
 // Computed properties to safely access nested data
