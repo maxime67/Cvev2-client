@@ -1,19 +1,23 @@
 <template>
- <h1> This is Vendor Page for {{ $route.params.id }}</h1>
+  <h1> This is Vendor Page for {{ $route.params.id }}</h1>
+  <h1> {{ vendor }}</h1>
+  <div v-for="product in productList">
+    <h1>{{ product }}</h1>
+  </div>
 </template>
 
 <script setup>
 import {onMounted, ref} from "vue";
 import {findVendorById} from "@/services/VendorService.js";
-import {findAllProductByVendor} from "@/services/ProductService.js";
-
+import {findAllProductByVendor, findProductByVendorId} from "@/services/ProductService.js";
+import { useRoute } from "vue-router";
 const vendor = ref(null);
 const productList = ref([null]);
-const id = "67f25a7942e42dd49ca40486";
+const route = useRoute();
 
 const fetchVendor = async () => {
   try {
-    vendor.value = await findVendorById(id);
+    vendor.value = await findVendorById(route.params.id);
   } catch (error) {
     console.error('Error fetching data:', error);
   }
@@ -21,7 +25,7 @@ const fetchVendor = async () => {
 
 const fetchProducts = async () => {
   try {
-    productList.value = await findAllProductByVendor(vendor.value.name);
+    productList.value = await findProductByVendorId(vendor.value._id);
   } catch (error) {
     console.error('Error fetching data:', error);
   }

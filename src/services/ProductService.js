@@ -18,6 +18,15 @@ export const findProductById = async (productId) => {
     }
 };
 
+export const findProductByVendorId = async (vendorId) => {
+    try {
+        return await makeApiGetRequest('api/product/vendor/id/' + vendorId); // Correction de l'URL (ajout du /)
+    } catch(error){
+        console.error('Error fetching product by name:', error);
+        throw error;
+    }
+};
+
 export const findAllProductsByName = async (productName) => {
     try {
         return await makeApiGetRequest('api/product/name/' + productName); // Correction de l'URL (ajout du /)
