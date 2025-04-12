@@ -384,13 +384,13 @@ const selectSearchItemByClick = (index) => {
 const navigateToResult = (result) => {
   switch(searchType.value) {
     case 'vendor':
-      router.push(`/vendor/${result._id}`);
+      router.push({ path: `/vendor/${result._id}`, replace: true });
       break;
     case 'product':
-      router.push(`/product/${result._id}`);
+      router.push({ path: `/product/${result._id}`, replace: true });
       break;
     case 'cve':
-      router.push(`/cve/${result._id}`);
+      router.push({ path: `/cve/${result._id}`, replace: true });
       break;
   }
 };

@@ -27,9 +27,18 @@ export const findCVEByIdentifier = async (identifier) => {
         throw error;
     }
 }
-export const findAllCveByProduct = async (vendor) => {
+export const findAllCveByProductName = async (vendor) => {
     try {
         return await makeApiGetRequest('api/cve/product/' + vendor);
+    } catch (error) {
+        console.error('Error fetching CVEs by product:', error);
+        throw error;
+    }
+};
+
+export const findAllCveByProductId = async (id) => {
+    try {
+        return await makeApiGetRequest('api/cve/product/id/' + id);
     } catch (error) {
         console.error('Error fetching CVEs by product:', error);
         throw error;
